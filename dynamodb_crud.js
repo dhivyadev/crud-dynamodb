@@ -1,166 +1,121 @@
-const AWS = require('aws-sdk');
+const { DynamoDBClient, CreateTableCommand, DescribeTableCommand } = require("@aws-sdk/client-dynamodb");
 
-// Configure AWS to use DynamoDB Local
-AWS.config.update({ region: 'localhost', endpoint: 'http://localhost:8000' });
+async function createTable() {
+  // Configure the AWS SDK with your credentials and region
+  const client = new DynamoDBClient({ region: "us-east-2" }); // Replace "us-east-2" with your desired region
 
-// Create a DynamoDB client and DocumentClient
-const dynamodb = new AWS.DynamoDB();
-const docClient = new AWS.DynamoDB.DocumentClient();
+  // Specify your desired table name
+  const tableName = "YourTableName";
 
-// Create the table with the required schema
-const tableName = 'Augmont-Token'; // Replace 'YourTableName' with your desired table name
+  try {
+    // Check if the table already exists by describing the table
+    const describeTableCommand = new DescribeTableCommand({ TableName: tableName });
+    await client.send(describeTableCommand);
+    console.log(`Table "${tableName}" already exists.`);
+  } catch (error) {
+    // If the table does not exist, create it
+    if (error.name === "ResourceNotFoundException") {
+      // Define the attribute definitions for the table
+      const attributeDefinitions = [
+        { AttributeName: "GlobalKeys", AttributeType: "S" },
+        { AttributeName: "Zoho", AttributeType: "S" },
+        { AttributeName: "Augmont", AttributeType: "S" },
+        { AttributeName: "newToken", AttributeType: "S" },
+      ];
 
-const createTableParams = {
-  TableName: tableName,
-  KeySchema: [
-    { AttributeName: 'GlobalKeys', KeyType: 'HASH' }, // Partition key
-    { AttributeName: 'ZohoAugmontNewToken', KeyType: 'RANGE' }, // Sort key
-  ],
-  AttributeDefinitions: [
-    { AttributeName: 'GlobalKeys', AttributeType: 'S' }, // String data type for the partition key
-    { AttributeName: 'ZohoAugmontNewToken', AttributeType: 'S' }, // String data type for the sort key
-  ],
-  ProvisionedThroughput: {
-    ReadCapacityUnits: 5,
-    WriteCapacityUnits: 5,
-  },
-};
+      // Define the key schema for the table
+      const keySchema = [
+        { AttributeName: "GlobalKeys", KeyType: "HASH" }, // Partition key (PK)
+        { AttributeName: "Zoho", KeyType: "RANGE" }, // Sort key (SK) - Part of the composite sort key
+        { AttributeName: "Augmont", KeyType: "RANGE" }, // Sort key (SK) - Part of the composite sort key
+        { AttributeName: "newToken", KeyType: "RANGE" }, // Sort key (SK) - Part of the composite sort key
+      ];
 
-// Check if the table exists before creating it
-dynamodb.describeTable({ TableName: tableName }, (err, data) => {
-  if (err && err.code === 'ResourceNotFoundException') {
-    // Table does not exist, create it
-    dynamodb.createTable(createTableParams, (err, data) => {
-      if (err) {
-        console.error('Error creating table:', err);
-      } else {
-        console.log('Table created successfully:', data);
-        // Perform CRUD operations here
-        performCRUDOperations();
+      // Define the provisioned throughput (change as per your requirements)
+      const provisionedThroughput = {
+        ReadCapacityUnits: 5,
+        WriteCapacityUnits: 5,
+      };
+
+      // Create the table command
+      const createTableCommand = new CreateTableCommand({
+        TableName: tableName,
+        AttributeDefinitions: attributeDefinitions,
+        KeySchema: keySchema,
+        ProvisionedThroughput: provisionedThroughput,
+      });
+
+      try {
+        // Send the CreateTable command to AWS DynamoDB service
+        const data = await client.send(createTableCommand);
+        console.log("Table created successfully:", data);
+      } catch (createError) {
+        console.error("Error creating table:", createError);
       }
-    });
-  } else if (err) {
-    console.error('Error describing table:', err);
-  } else {
-    console.log('Table exists:', data);
-    // Table already exists, perform CRUD operations directly
-    performCRUDOperations();
+    } else {
+      // For any other error, print the error message
+      console.error("Error describing table:", error);
+    }
   }
-});
+}
+// Call the createTable function to create the table or show if it already exists
+createTable();
 
-// Function to perform CRUD operations
-const performCRUDOperations = () => {
-  // Create operation
-  const createItem = (data) => {
-    const params = {
-      TableName: tableName,
-      Item: data,
-    };
-
-    docClient.put(params, (err, data) => {
-      if (err) {
-        console.error('Error creating item:', err);
-      } else {
-        console.log('Item created successfully:', data);
-        // Read the created item
-        readItem(data.GlobalKeys, data.ZohoAugmontNewToken);
-      }
-    });
-  };
-
-  // Read operation
-  const readItem = (globalKeys, zohoAugmontNewToken) => {
-    const params = {
-      TableName: tableName,
-      Key: {
-        GlobalKeys: globalKeys,
-        ZohoAugmontNewToken: zohoAugmontNewToken,
+async function putDataIntoTable() {
+    // Configure the AWS SDK with your credentials and region
+    const client = new DynamoDBClient({ region: "us-east-2" }); // Replace "us-east-2" with your desired region
+  
+    // Specify your table name
+    const tableName = "YourTableName";
+  
+    // Sample dummy data to be inserted
+    const dummyData = [
+      {
+        GlobalKeys: "key1",
+        Zoho: "zoho1",
+        Augmont: "augmont1",
+        newToken: "newtoken1",
+        Bearer_Token: "bearer1",
+        Key: "key1",
+        Value: "value1",
       },
-    };
-
-    docClient.get(params, (err, data) => {
-      if (err) {
-        console.error('Error reading item:', err);
-      } else {
-        console.log('Item retrieved successfully:', data.Item);
-        // Update the retrieved item
-        updateItem(data.Item.GlobalKeys, data.Item.ZohoAugmontNewToken, { BearerToken: 'UpdatedBearerTokenValue' });
-      }
-    });
-  };
-
-  // Update operation
-  const updateItem = (globalKeys, zohoAugmontNewToken, attributesToUpdate) => {
-    const updateExpression = 'SET ' + Object.keys(attributesToUpdate).map((key) => `#${key} = :${key}`).join(', ');
-    const expressionAttributeValues = {};
-    const expressionAttributeNames = {};
-
-    Object.entries(attributesToUpdate).forEach(([key, value]) => {
-      expressionAttributeNames[`#${key}`] = key;
-      expressionAttributeValues[`:${key}`] = value;
-    });
-
-    const params = {
-      TableName: tableName,
-      Key: {
-        GlobalKeys: globalKeys,
-        ZohoAugmontNewToken: zohoAugmontNewToken,
+      {
+        GlobalKeys: "key2",
+        Zoho: "zoho2",
+        Augmont: "augmont2",
+        newToken: "newtoken2",
+        Bearer_Token: "bearer2",
+        Key: "key2",
+        Value: "value2",
       },
-      UpdateExpression: updateExpression,
-      ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues,
-      ReturnValues: 'ALL_NEW', // Use ALL_NEW to return the updated attributes
-    };
-
-    docClient.update(params, (err, data) => {
-      if (err) {
-        console.error('Error updating item:', err);
-      } else {
-        console.log('Item updated successfully:', data);
-        // Delete the item after update
-        deleteItem(data.Attributes.GlobalKeys, data.Attributes.ZohoAugmontNewToken);
+      // Add more dummy data items as needed
+    ];
+  
+    // Insert each item in the dummy data array into the table
+    for (const item of dummyData) {
+      // Create the PutItem command for each item
+      const command = new PutItemCommand({
+        TableName: tableName,
+        Item: {
+          GlobalKeys: { S: item.GlobalKeys },
+          Zoho: { S: item.Zoho },
+          Augmont: { S: item.Augmont },
+          newToken: { S: item.newToken },
+          Bearer_Token: { S: item.Bearer_Token },
+          Key: { S: item.Key },
+          Value: { S: item.Value },
+        },
+      });
+  
+      try {
+        // Send the PutItem command to AWS DynamoDB service to write the data
+        const data = await client.send(command);
+        console.log(`Data inserted for ${item.GlobalKeys} successfully:`, data);
+      } catch (error) {
+        console.error(`Error inserting data for ${item.GlobalKeys}:`, error);
       }
-    });
-  };
-
-  // Delete operation
-  const deleteItem = (globalKeys, zohoAugmontNewToken) => {
-    const params = {
-      TableName: tableName,
-      Key: {
-        GlobalKeys: globalKeys,
-        ZohoAugmontNewToken: zohoAugmontNewToken,
-      },
-    };
-
-    docClient.delete(params, (err, data) => {
-      if (err) {
-        console.error('Error deleting item:', err);
-      } else {
-        console.log('Item deleted successfully:', data);
-      }
-    });
-  };
-
-  // Example usage:
-  const dataToCreate = {
-    GlobalKeys: 'GID@123',
-    ZohoAugmontNewToken: 'ZOHO#123',
-    BearerToken: 'BID#987',
-    Keys: 'ACSAMBND@1',
-    Values: '87786',
-  };
-
-  createItem(dataToCreate);
-
-  // Read and Update operations
-  readItem(dataToCreate.GlobalKeys, dataToCreate.ZohoAugmontNewToken);
-
-  const updatedData = {
-    GlobalKeys: 'GID#123',
-    ZohoAugmontNewToken: 'ZOHO123',
-    BearerToken: 'BID#123',
-  };
-
-  updateItem(updatedData.GlobalKeys, updatedData.ZohoAugmontNewToken, { BearerToken: updatedData.BearerToken });
-};
+    }
+  }
+  
+  // Call the putDataIntoTable function to insert dummy data into the table
+  putDataIntoTable();
