@@ -8,7 +8,7 @@ const dynamodb = new AWS.DynamoDB();
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 // Create the table with the required schema
-const tableName = 'YourTableName'; // Replace 'YourTableName' with your desired table name
+const tableName = 'Augmont-Token'; // Replace 'YourTableName' with your desired table name
 
 const createTableParams = {
   TableName: tableName,
@@ -84,7 +84,7 @@ const performCRUDOperations = () => {
       } else {
         console.log('Item retrieved successfully:', data.Item);
         // Update the retrieved item
-        updateItem(data.GlobalKeys, data.ZohoAugmontNewToken, { BearerToken: 'UpdatedBearerTokenValue' });
+        updateItem(data.Item.GlobalKeys, data.Item.ZohoAugmontNewToken, { BearerToken: 'UpdatedBearerTokenValue' });
       }
     });
   };
@@ -109,7 +109,7 @@ const performCRUDOperations = () => {
       UpdateExpression: updateExpression,
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
-      ReturnValues: 'UPDATED_NEW',
+      ReturnValues: 'ALL_NEW', // Use ALL_NEW to return the updated attributes
     };
 
     docClient.update(params, (err, data) => {
@@ -118,7 +118,7 @@ const performCRUDOperations = () => {
       } else {
         console.log('Item updated successfully:', data);
         // Delete the item after update
-        deleteItem(data.GlobalKeys, data.ZohoAugmontNewToken);
+        deleteItem(data.Attributes.GlobalKeys, data.Attributes.ZohoAugmontNewToken);
       }
     });
   };
@@ -144,12 +144,23 @@ const performCRUDOperations = () => {
 
   // Example usage:
   const dataToCreate = {
-    GlobalKeys: 'YourGlobalKeysValue',
-    ZohoAugmontNewToken: 'YourZohoAugmontNewTokenValue',
-    BearerToken: 'YourBearerTokenValue',
-    Keys: 'YourKeysValue',
-    Values: 'YourValuesValue',
+    GlobalKeys: 'GID@123',
+    ZohoAugmontNewToken: 'ZOHO#123',
+    BearerToken: 'BID#987',
+    Keys: 'ACSAMBND@1',
+    Values: '87786',
   };
 
   createItem(dataToCreate);
+
+  // Read and Update operations
+  readItem(dataToCreate.GlobalKeys, dataToCreate.ZohoAugmontNewToken);
+
+  const updatedData = {
+    GlobalKeys: 'GID#123',
+    ZohoAugmontNewToken: 'ZOHO123',
+    BearerToken: 'BID#123',
+  };
+
+  updateItem(updatedData.GlobalKeys, updatedData.ZohoAugmontNewToken, { BearerToken: updatedData.BearerToken });
 };
