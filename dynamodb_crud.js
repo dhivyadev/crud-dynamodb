@@ -1,9 +1,10 @@
 const { DynamoDBClient, CreateTableCommand, DescribeTableCommand, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 
 const dynamoDBEndpoint = "http://localhost:8000";
-const region = "us-east-1"; // Change to your desired region
+const region = "us-east-2"; // Change to your desired region
 const tableName = "Value1";
 
+//Creating Table - Value1
 async function createTable() {
   const client = new DynamoDBClient({ region, endpoint: dynamoDBEndpoint });
 
@@ -54,6 +55,7 @@ async function createTable() {
   }
 }
 
+//Inserting Table - Value1
 async function putDataIntoTable() {
   const client = new DynamoDBClient({ region, endpoint: dynamoDBEndpoint });
   const data = {
@@ -76,6 +78,27 @@ async function putDataIntoTable() {
         "Bearer-Token": { S: "" },
         "Key": { S: "" },
         "Value": { S: "" }
+      }
+    ],
+   GSR: [
+      {
+        "Block_ID": { S: "" },
+        "g_buy": { S: "" },
+        "g_sell": { S: "" },
+        "s_buy": { S: "" },
+        "s_sell": { S: "" },
+        "gBuyGST": { S: "" },
+        "sBuyGST": { S: "" },
+        "CGSST": { S: "" },
+        "SGST": { S: "" },
+        "IGST": { S: "" },
+      }
+    ],
+    Passbook: [
+      {
+        "Goldgrms": { S: "" },
+        "Silvergrms": { S: "" },
+        "Updatedat": { S: "" }
       }
     ]
   };
@@ -105,9 +128,84 @@ async function putDataIntoTable() {
   }
 }
 
+//Updation-Value1
+async function updateDataInTable() {
+  const client = new DynamoDBClient({ region, endpoint: dynamoDBEndpoint });
+  const dummyData = [
+    {
+      PK: "Global_Keys",
+      SK: JSON.stringify({
+        Zoho: [
+          {
+            "Bearer-Token": { S: "new-value" },  // Update the value here
+            "Key": { S: "VID#123" },
+            "Value": { S: "Value1" }
+          }
+        ],
+        AUGMONT: [
+          {
+            "Bearer-Token": { S: "BID#45" },
+            "Key": { S: "VID#345" },
+            "Value": { S: "GoldnSilver" }
+          }
+        ],
+        NewToken: [
+          {
+            "Bearer-Token": { S: "" },
+            "Key": { S: "" },
+            "Value": { S: "" }
+          }
+        ],
+       GSR: [
+          {
+            "Block_ID": { S: "" },
+            "g_buy": { S: "" },
+            "g_sell": { S: "" },
+            "s_buy": { S: "" },
+            "s_sell": { S: "" },
+            "gBuyGST": { S: "" },
+            "sBuyGST": { S: "" },
+            "CGSST": { S: "" },
+            "SGST": { S: "" },
+            "IGST": { S: "" },
+          }
+        ],
+        Passbook: [
+          {
+            "Goldgrms": { S: "" },
+            "Silvergrms": { S: "" },
+            "Updatedat": { S: "" }
+          }
+        ]
+      }),
+    }
+    // Add more dummy data items as needed
+  ];
+
+  for (const item of dummyData) {
+    const command = new PutItemCommand({
+      TableName: tableName,
+      Item: {
+        PK: { S: item.PK },
+        SK: { S: item.SK }
+      }
+    });
+
+    try {
+      const data = await client.send(command);
+      console.log(`Data updated for ${item.PK} successfully:`, data);
+    } catch (error) {
+      console.error(`Error updating data for ${item.PK}:`, error);
+    }
+  }
+}
+
+
+//Main-Call
 async function main() {
   //await createTable();
-  await putDataIntoTable();
+  //await putDataIntoTable();
+  await updateDataInTable();
 }
 
 main();
