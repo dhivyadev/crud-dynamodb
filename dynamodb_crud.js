@@ -204,8 +204,8 @@ async function updateDataInTable() {
 //Main-Call
 async function main() {
   //await createTable();
-  //await putDataIntoTable();
-  await updateDataInTable();
+  await putDataIntoTable();
+  //await updateDataInTable();
 }
 
 main();

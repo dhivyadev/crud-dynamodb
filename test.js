@@ -1,216 +1,143 @@
-const { DynamoDBClient, CreateTableCommand, DescribeTableCommand, PutItemCommand, UpdateItemCommand, GetItemCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, CreateTableCommand,DescribeTableCommand, PutItemCommand, UpdateItemCommand,GetItemCommand } = require("@aws-sdk/client-dynamodb");
 
-const dynamoDBEndpoint = "http://localhost:8000";
-const region = "us-east-2"; // Change to your desired region
-const tableName = "Value1";
+// Configure the DynamoDB client with the endpoint URL
+const client = new DynamoDBClient({
+  region: "us-east-1",
+  endpoint: "http://localhost:8000" // Replace with your local DynamoDB endpoint
+});
 
-const data = {
-  Zoho: [
-    {
-      "Bearer-Token": { S: "BID12323" },
-      "Key": { S: "BID12323" },
-      "Value": { S: "BID12323" }
-    }
-      ],
-      AUGMONT: [
-        {
-          "Bearer-Token": { S: "BID#45" },
-          "Key": { S: "VID#345" },
-          "Value": { S: "GoldnSilver" }
-        }
-      ],
-      NewToken: [
-        {
-          "Bearer-Token": { S: "BID12323" },
-          "Key": { S: "BID12323" },
-          "Value": { S: "BID12323" }
-        }
-      ],
-      GSR: [
-        {
-          "Block_ID": { S: "BID12323" },
-          "g_buy": { S: "BID12323" },
-          "g_sell": { S: "BID12323" },
-          "s_buy": { S: "BID12323" },
-          "s_sell": { S: "" },
-          "gBuyGST": { N: "4.06" },
-          "sBuyGST": { N: "3.12" },
-          "CGSST": { S: "" },
-          "SGST": { S: "" },
-          "IGST": { S: "" },
-        }
-      ],
-      Passbook: [
-        {
-          "Goldgrms": { N: "" },
-          "Silvergrms": { N: "" },
-          "Updatedat": { S: "" }
-        }
-      ]
-};
+async function createTable() {
+  const tableName = "test";
 
-async function createTableIfNotExists() {
-  const client = new DynamoDBClient({ region, endpoint: dynamoDBEndpoint });
+  // Check if the table already exists
+  try {
+      await client.send(new DescribeTableCommand({ TableName: tableName }));
+      console.log("Table already exists.");
+      return; // Exit function if table exists
+  } catch (error) {
+      if (error.name !== "ResourceNotFoundException") {
+          console.error("Error describing table:", error);
+          return;
+      }
+  }
+
+  // Table doesn't exist, proceed to create it
+  const params = {
+      TableName: tableName,
+      KeySchema: [
+          { AttributeName: "GlobalKeys", KeyType: "HASH" },
+          { AttributeName: "CombinedSortKey", KeyType: "RANGE" }
+      ],
+      AttributeDefinitions: [
+          { AttributeName: "GlobalKeys", AttributeType: "S" },
+          { AttributeName: "CombinedSortKey", AttributeType: "S" }
+      ],
+      BillingMode: "PAY_PER_REQUEST"
+  };
 
   try {
-    const describeTableCommand = new DescribeTableCommand({ TableName: tableName });
-    await client.send(describeTableCommand);
-    console.log(`Table "${tableName}" already exists.`);
+      await client.send(new CreateTableCommand(params));
+      console.log("Table created successfully.");
   } catch (error) {
-    if (error.name === "ResourceNotFoundException") {
-      const attributeDefinitions = [
-        { AttributeName: "PK", AttributeType: "S" },
-        { AttributeName: "SK", AttributeType: "S" },
-      ];
-
-      const keySchema = [
-        { AttributeName: "PK", KeyType: "HASH" },
-        { AttributeName: "SK", KeyType: "RANGE" },
-      ];
-
-      const provisionedThroughput = {
-        ReadCapacityUnits: 5,
-        WriteCapacityUnits: 5,
-      };
-
-      const createTableCommand = new CreateTableCommand({
-        TableName: tableName,
-        AttributeDefinitions: attributeDefinitions,
-        KeySchema: keySchema,
-        ProvisionedThroughput: provisionedThroughput,
-      });
-
-      try {
-        const data = await client.send(createTableCommand);
-        console.log("Table created successfully:", data);
-      } catch (createError) {
-        console.error("Error creating table:", createError);
-      }
-    } else {
-      console.error("Error describing table:", error);
-    }
+      console.error("Error creating table:", error);
   }
 }
 
-async function insertOrUpdateData(data) {
-  const client = new DynamoDBClient({ region, endpoint: dynamoDBEndpoint });
-
-  const itemsToInsertOrUpdate = [
-    {
-      PK: "Global_Keys",
-      SK: JSON.stringify(data),
-    }
-    // ... Add more items as needed
-  ];
-
-  for (const item of itemsToInsertOrUpdate) {
-    const command = new PutItemCommand({
-      TableName: tableName,
-      Item: {
-        PK: { S: item.PK },
-        SK: { S: item.SK }
-      }
-    });
+// Function to insert an item into the table
+async function insertItem(partitionKey, sortKey, attributes) {
+    const params = {
+        TableName: "test",
+        Item: {
+            GlobalKeys: { S: partitionKey },
+            CombinedSortKey: { S: `${partitionKey}#${sortKey}` },
+            ...attributes
+        }
+    };
 
     try {
-      const data = await client.send(command);
-      console.log(`Data inserted/updated for ${item.PK} successfully:`, data);
+        await client.send(new PutItemCommand(params));
+        console.log("Item inserted successfully.");
     } catch (error) {
-      console.error(`Error inserting/updating data for ${item.PK}:`, error);
+        console.error("Error inserting item:", error);
     }
+}
+
+// Function to update an item's attributes
+async function updateItem(partitionKey, sortKey, attributesToUpdate) {
+  const updateExpression = "SET " + Object.keys(attributesToUpdate).map(attr => `#${attr} = :${attr}`).join(", ");
+  const expressionAttributeNames = {};
+  const expressionAttributeValues = {};
+
+  for (const attr in attributesToUpdate) {
+      expressionAttributeNames[`#${attr}`] = attr;
+      expressionAttributeValues[`:${attr}`] = attributesToUpdate[attr];
+  }
+
+  const params = {
+      TableName: "test",
+      Key: {
+          GlobalKeys: { S: partitionKey },
+          CombinedSortKey: { S: `${partitionKey}#${sortKey}` }
+      },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeNames: expressionAttributeNames, // Always use expression attribute names
+      ExpressionAttributeValues: expressionAttributeValues
+  };
+
+  try {
+      await client.send(new UpdateItemCommand(params));
+      console.log("Item updated successfully.");
+  } catch (error) {
+      console.error("Error updating item:", error);
   }
 }
 
-async function updateGlobalKeys(newData) {
-    const client = new DynamoDBClient({ region, endpoint: dynamoDBEndpoint });
-  
-    const getItemCommand = new GetItemCommand({
-      TableName: tableName,
+
+
+
+async function readItem(partitionKey, sortKey) {
+  const params = {
+      TableName: "test",
       Key: {
-        PK: { S: "Global_Keys" },
-        SK: { S: "UpdatedData" }
+          GlobalKeys: { S: partitionKey },
+          CombinedSortKey: { S: `${partitionKey}#${sortKey}` }
       }
-    });
-  
-    try {
-      const existingData = await client.send(getItemCommand);
-  
-      const updatedData = {
-        ...(existingData.Item ? JSON.parse(existingData.Item.Data.S) : {}),
-        ...newData
-      };
-  
-      const updateCommand = new UpdateItemCommand({
-        TableName: tableName,
-        Key: {
-          PK: { S: "Global_Keys" },
-          SK: { S: "UpdatedData" }
-        },
-        UpdateExpression: "SET #data = :data",
-        ExpressionAttributeNames: {
-          "#data": "Data"
-        },
-        ExpressionAttributeValues: {
-          ":data": { S: JSON.stringify(updatedData) }
-        }
-      });
-  
-      try {
-        const data = await client.send(updateCommand);
-        console.log(`UpdatedData entry updated successfully:`, data);
-      } catch (updateError) {
-        console.error(`Error updating UpdatedData entry:`, updateError);
+  };
+
+  try {
+      const data = await client.send(new GetItemCommand(params));
+      const item = data.Item;
+      
+      if (item) {
+          console.log("Item found:", item);
+      } else {
+          console.log("Item not found.");
       }
-    } catch (getItemError) {
-      console.error(`Error getting existing UpdatedData entry:`, getItemError);
-    }
+  } catch (error) {
+      console.error("Error reading item:", error);
   }
-  
-  async function main() {
-    const zohoData = {
-      Zoho: [
-        {
-          "Bearer-Token": "z123",
-          "Key": "Zkafdhgasjhdjsa",
-          "Value": "Zoho-Value1"
-        }
-        // Add more Zoho data as needed
-      ]
-    };
-  
-    const augmontData = {
-      Augmont: [
-        {
-          "Bearer-Token": "a123",
-          "Key": "Ahshjhasjkasijop",
-          "Value": "Augmont-Value1"
-        }
-        // Add more Augmont data as needed
-      ]
-    };
-  
-    const newTokenData = {
-      NewToken: [
-        {
-          "Bearer-Token": "n123",
-          "Key": "Asjajkdhjshkdj",
-          "Value": "NewToken-Value1"
-        }
-        // Add more NewToken data as needed
-      ]
-    };
-  
-    await updateGlobalKeys(zohoData);
-    await updateGlobalKeys(augmontData);
-    await updateGlobalKeys(newTokenData);
-  }
-  
-  
-  
-//async function main() {
-//await createTableIfNotExists();
-//await insertOrUpdateData(data);
-//   await updateData();
-//}
+}
+
+
+
+// Usage examples
+async function main() {
+    await createTable();
+
+     await insertItem("Global Keys", "ZOHO", { //Global_Keys#ZOHO
+       Bearer_Token: { S: "ZOHO#123" },
+       Key: { S: "val1" },
+       Value: { S: "9789" }
+       });
+    // Insert or update items for other sort keys as needed
+
+    
+
+    // await updateItem("Global Keys", "NewToken", {
+    //   'Bearer_Token' : { S: "Test" },
+    // });
+    await readItem("Global Keys", "ZOHO"); //Global_Keys#ZOHO
+
+}
 
 main();
