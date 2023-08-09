@@ -33,8 +33,8 @@ const data = {
           "g_sell": { S: "BID12323" },
           "s_buy": { S: "BID12323" },
           "s_sell": { S: "" },
-          "gBuyGST": { S: "" },
-          "sBuyGST": { S: "" },
+          "gBuyGST": { N: "4.06" },
+          "sBuyGST": { N: "3.12" },
           "CGSST": { S: "" },
           "SGST": { S: "" },
           "IGST": { S: "" },
@@ -42,8 +42,8 @@ const data = {
       ],
       Passbook: [
         {
-          "Goldgrms": { S: "" },
-          "Silvergrms": { S: "" },
+          "Goldgrms": { N: "" },
+          "Silvergrms": { N: "" },
           "Updatedat": { S: "" }
         }
       ]
@@ -170,9 +170,9 @@ async function updateGlobalKeys(newData) {
     const zohoData = {
       Zoho: [
         {
-          "Bearer-Token": "new-value-Zoho",
-          "Key": "Zoho-Key",
-          "Value": "Zoho-Value"
+          "Bearer-Token": "z123",
+          "Key": "Zkafdhgasjhdjsa",
+          "Value": "Zoho-Value1"
         }
         // Add more Zoho data as needed
       ]
@@ -181,9 +181,9 @@ async function updateGlobalKeys(newData) {
     const augmontData = {
       Augmont: [
         {
-          "Bearer-Token": "new-value-Augmont",
-          "Key": "Augmont-Key",
-          "Value": "Augmont-Value"
+          "Bearer-Token": "a123",
+          "Key": "Ahshjhasjkasijop",
+          "Value": "Augmont-Value1"
         }
         // Add more Augmont data as needed
       ]
@@ -192,9 +192,9 @@ async function updateGlobalKeys(newData) {
     const newTokenData = {
       NewToken: [
         {
-          "Bearer-Token": "new-value-NewToken",
-          "Key": "NewToken-Key",
-          "Value": "NewToken-Value"
+          "Bearer-Token": "n123",
+          "Key": "Asjajkdhjshkdj",
+          "Value": "NewToken-Value1"
         }
         // Add more NewToken data as needed
       ]
@@ -206,10 +206,11 @@ async function updateGlobalKeys(newData) {
   }
   
   
-async function main() {
-await createTableIfNotExists();
-await insertOrUpdateData(data);
+  
+//async function main() {
+//await createTableIfNotExists();
+//await insertOrUpdateData(data);
 //   await updateData();
-}
+//}
 
 main();
