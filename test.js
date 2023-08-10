@@ -2,8 +2,8 @@ const { DynamoDBClient, CreateTableCommand,DescribeTableCommand, PutItemCommand,
 
 // Configure the DynamoDB client with the endpoint URL
 const client = new DynamoDBClient({
-  region: "us-east-1",
-  endpoint: "http://localhost:8000" // Replace with your local DynamoDB endpoint
+  region: "us-east-1", // Replace with your local DynamoDB endpoint
+  endpoint: "http://localhost:8000"
 });
 
 async function createTable() {
@@ -97,7 +97,7 @@ async function updateItem(partitionKey, sortKey, attributesToUpdate) {
 
 async function readItem(partitionKey, sortKey) {
   const params = {
-      TableName: "test",
+      TableName: "value1_dyno",
       Key: {
           GlobalKeys: { S: partitionKey },
           CombinedSortKey: { S: `${partitionKey}#${sortKey}` }
@@ -122,13 +122,20 @@ async function readItem(partitionKey, sortKey) {
 
 // Usage examples
 async function main() {
-    await createTable();
+    //await createTable();
 
-     await insertItem("Global Keys", "ZOHO", { //Global_Keys#ZOHO
-       Bearer_Token: { S: "ZOHO#123" },
-       Key: { S: "val1" },
-       Value: { S: "9789" }
-       });
+    //  await insertItem("Global Keys", "AUGMONT#GOLD_SILVER_RATES#bg007", { //Global_Keys#ZOHO
+    //    blockId: { S: "bg007" },
+    //    gBuy: { N: "5329.90" },
+    //    gSell: { N: "5144.90" },
+    //    sBuy: { N: "69.33" },
+    //    sSell: { N: "66.33" },
+    //    gBuyGst: { S: "5" },
+    //    sBuyGst: { N: "5" },
+    //    CGSST: { N: "1.50" },
+    //    SGST: { N: "1.50" },
+    //    IGST: { N: "3.00" },
+    //     });
     // Insert or update items for other sort keys as needed
 
     
@@ -136,7 +143,7 @@ async function main() {
     // await updateItem("Global Keys", "NewToken", {
     //   'Bearer_Token' : { S: "Test" },
     // });
-    await readItem("Global Keys", "ZOHO"); //Global_Keys#ZOHO
+    await readItem("Global Keys", "AUGMONT#GOLD_SILVER_RATES"); //Global_Keys#ZOHO
 
 }
 
