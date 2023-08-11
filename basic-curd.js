@@ -96,6 +96,8 @@ class DynamoDBManager {
   }
 }
 
+
+
 // Configure AWS credentials and region  or use "aws configure" in cli
 const config = {
   region: "us-east-2", //change according to your region
