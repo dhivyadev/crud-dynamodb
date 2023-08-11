@@ -1,17 +1,13 @@
 const { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand, DeleteItemCommand } = require("@aws-sdk/client-dynamodb");
 
-// Configure AWS credentials and region  or use "aws configure" in cli
-const config = {
-  region: "us-east-1", //change according to your region
-  //use endpoint: "http://localhost:8000" for local dynamo access
-};
+//Class-Constructor
+class DynamoDBManager {
+  constructor(dynamodb) {
+    this.dynamodb = dynamodb;
+  }
 
-// Initialize DynamoDB client
-const dynamodb = new DynamoDBClient(config);
-
-//Insert Function
-//Usage: insertData(<tableName>, <partitionKey>, <sortKey>, <newdata>)
-async function insertData(tableName, partitionKey, sortKey, data) {
+  //Inserting data into the Table
+  async insertData(tableName, partitionKey, sortKey, data) {
     const params = {
       TableName: tableName,
       Item: {
@@ -20,17 +16,17 @@ async function insertData(tableName, partitionKey, sortKey, data) {
         ...data, // Merge the rest of the new data
       },
     };
-  
+
     try {
-      await dynamodb.send(new PutItemCommand(params));
+      await this.dynamodb.send(new PutItemCommand(params));
       console.log("Item inserted successfully:", params.Item);
     } catch (error) {
       console.error("Error inserting item:", error);
     }
   }
-//Read Function
-//Usage: getData(<tableName>, <partitionKey>, <sortKey>)
-async function getData(tableName, partitionKey, sortKey) {
+
+//GetData- from the table
+  async getData(tableName, partitionKey, sortKey) {
     const params = {
       TableName: tableName,
       Key: {
@@ -38,92 +34,99 @@ async function getData(tableName, partitionKey, sortKey) {
         SK: { S: sortKey },
       },
     };
-  
+
     try {
-        const response = await dynamodb.send(new GetItemCommand(params));
-        if (response.Item) {
-          console.log("Retrieved item:", response.Item);
-        } else {
-          console.log("Item not found.");
-        }
-      } catch (error) {
-        console.error("Error retrieving item:", error);
+      const response = await this.dynamodb.send(new GetItemCommand(params));
+      if (response.Item) {
+        console.log("Retrieved item:", response.Item);
+      } else {
+        console.log("Item not found.");
       }
+    } catch (error) {
+      console.error("Error retrieving item:", error);
+    }
   }
 
-
-//Read Function
-//Usage: updateItem(<tableName>, <partitionKey>, <sortKey>, <updatedata>)
-async function updateItem(tableName,partitionKey, sortKey, attributesToUpdate) {
+  //Update data into the Table
+  async updateItem(tableName, partitionKey, sortKey, attributesToUpdate) {
     const updateExpression = "SET " + Object.keys(attributesToUpdate).map(attr => `#${attr} = :${attr}`).join(", ");
     const expressionAttributeNames = {};
     const expressionAttributeValues = {};
-  
+
     for (const attr in attributesToUpdate) {
-        expressionAttributeNames[`#${attr}`] = attr;
-        expressionAttributeValues[`:${attr}`] = attributesToUpdate[attr];
+      expressionAttributeNames[`#${attr}`] = attr;
+      expressionAttributeValues[`:${attr}`] = attributesToUpdate[attr];
     }
-  
+
     const params = {
-        TableName: tableName,
-        Key: {
-            PK: { S: partitionKey },
-            SK: { S: sortKey }
-        },
-        UpdateExpression: updateExpression,
-        ExpressionAttributeNames: expressionAttributeNames, // Always use expression attribute names
-        ExpressionAttributeValues: expressionAttributeValues
+      TableName: tableName,
+      Key: {
+        PK: { S: partitionKey },
+        SK: { S: sortKey }
+      },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues
     };
-  
+
     try {
-        await dynamodb.send(new UpdateItemCommand(params));
-        console.log("Item updated successfully.");
+      await this.dynamodb.send(new UpdateItemCommand(params));
+      console.log("Item updated successfully.");
     } catch (error) {
-        console.error("Error updating item:", error);
+      console.error("Error updating item:", error);
     }
   }
 
-
-//Read Function
-//Usage: deleteData(<tableName>, <partitionKey>, <sortKey>)
-async function deleteData(tableName, partitionKey, sortKey) {
-  const params = {
-    TableName: tableName,
-    Key: {
+  //Delete data from the table
+  async deleteData(tableName, partitionKey, sortKey) {
+    const params = {
+      TableName: tableName,
+      Key: {
         PK: { S: partitionKey },
         SK: { S: sortKey },
       },
-  };
+    };
 
-  try {
-    await dynamodb.send(new DeleteItemCommand(params));
-    console.log("Item deleted successfully");
-  } catch (error) {
-    console.error("Error deleting item:", error);
+    try {
+      await this.dynamodb.send(new DeleteItemCommand(params));
+      console.log("Item deleted successfully");
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
   }
 }
 
-// Replace these values with your own
-const tableName = "value1_dyno";
-const partitionKey = "Global_Keys";
-const sortKey = "TEST";
+// Configure AWS credentials and region  or use "aws configure" in cli
+const config = {
+  region: "us-east-2", //change according to your region
+  //use endpoint: "http://localhost:8000" for local dynamo access
+  endpoint: "http://localhost:8000"
+};
 
+// Initialize DynamoDB client
+const dynamodb = new DynamoDBClient(config);
+const dbManager = new DynamoDBManager(dynamodb);
+
+// Replace these values with your own
+const tableName = "Value1_Process";
+const partitionKey = "Global_Keys";
+const sortKey = "Test";
 
 const newData = {
-    BearerToken: { S: "btoken#kjshfdvkjzdbkf" },// Replace with appropriate data type and value
-    Keys: { S: "code_test" }, // Replace with appropriate data type and value
-    values: { N: "897987" }, // Replace with appropriate data type and value
+    BearerKey: { S: "btoken#kjshfdvkjzdbkf" },
+    Key: { S: "code_test" }, 
+    Values: { S: "897987" }, 
 };
-//insertData(tableName,partitionKey,sortKey, newData);
+dbManager.insertData(tableName,partitionKey,sortKey, newData);
 
-//getData(tableName, partitionKey, sortKey);
+//dbManager.getData(tableName, partitionKey, sortKey);
 
 const Updatedata ={
-    BearerToken: { S: "update#test" },
-    Keys: { S: "update#test" },
-    values: { N: "000000" }, // will consider as single 0
+    BearerKey: { S: "update#test" },
+    Key: { S: "update#test" },
+    Values: { S: "000000" }, // will consider as single 0
 }
 
-updateItem(tableName,partitionKey,sortKey,Updatedata);
+//dbManager.updateItem(tableName,partitionKey,sortKey,Updatedata);
 
-//deleteData(tableName,partitionKey,sortKey);
+//dbManager.deleteData(tableName,partitionKey,sortKey);
