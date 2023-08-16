@@ -1,0 +1,207 @@
+{
+	"info": {
+		"_postman_id": "b3e48317-6323-424f-a841-8f8c32d259ff",
+		"name": "DynamoDB-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29021528"
+	},
+	"item": [
+		{
+			"name": "Table Manager",
+			"item": [
+				{
+					"name": "Create Table",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tableName\": \"testAPI\",\r\n    \"partitionKey\": \"PK\",\r\n    \"sortKey\": \"SK\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/createTable",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"createTable"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read Table",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/readTable?tableName=testAPI_table",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"readTable"
+							],
+							"query": [
+								{
+									"key": "tableName",
+									"value": "testAPI_table"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Table Item Manager",
+			"item": [
+				{
+					"name": "Insert Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tableName\":\"testAPI_table\",\r\n    \"partitionKey\":\"USERS\",\r\n    \"sortKey\":\"hjkabkfn345235624r425mf#GoldSell#2023-08-16T10:56:45.000000Z\",\r\n    \"data\":{\r\n        \"lockPrice\":{\"S\":\"5851.70\"},\r\n        \"blockId\":{\"S\":\"dgarhgrhrf\"},\r\n        \"metalType\":{\"S\":\"gold\"},\r\n        \"merchantTransactionId\":{\"S\":\"a1137d2a_2023-08-13_064798\"},\r\n        \"userBank[userBankId]\":{\"S\":\"a7zp2DXv\"},\r\n        \"userBank[accountName]\":{\"S\":\"Ananth N\"},\r\n        \"userBank[accountNumber]\":{\"S\":\"1253467362345\"},\r\n        \"userBank[ifscCode]\":{\"S\":\"RBIN9976\"},\r\n        \"amount\":{\"N\":100}\r\n    }\r\n}\r\n\r\n\r\n\r\n"
+						},
+						"url": {
+							"raw": "{{url}}/insertData",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"insertData"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Data",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/getData?tableName=testAPI_table&partitionKey=USERS&sortKey=hjkabkfn345235624r425mf%23GoldSell%232023-08-16T10:56:45.000000Z",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"getData"
+							],
+							"query": [
+								{
+									"key": "tableName",
+									"value": "testAPI_table"
+								},
+								{
+									"key": "partitionKey",
+									"value": "USERS"
+								},
+								{
+									"key": "sortKey",
+									"value": "hjkabkfn345235624r425mf#GoldSell#2023-08-16T10:56:45.000000Z"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Data",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tableName\":\"testAPI_table\",\r\n    \"partitionKey\":\"USERS\",\r\n    \"sortKey\":\"hjkabkfn345235624r425mf#GoldSell#2023-08-16T10:56:45.000000Z\",\r\n    \"attributesToUpdate\":{\r\n        \"metalType\":{\"S\":\"Silver\"}\r\n    }\r\n}\r\n"
+						},
+						"url": {
+							"raw": "{{url}}/updateItem",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"updateItem"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Data",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tableName\":\"testAPI_table\",\r\n    \"partitionKey\":\"USERS\",\r\n    \"sortKey\":\"hjkabkfn345235624r425mf#GoldSell#2023-08-16T10:56:45.000000Z\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/deleteData",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"deleteData"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}

@@ -6,7 +6,7 @@ const { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand,
 //DynamoDBTableManager class to Create, Update, Read and Delete Operation on Dynamodb Table
 
 class DynamoDBTableManager{
-  constructor(){
+  constructor(dynamodb){
     this.dynamodb = dynamodb;
   };
 
@@ -244,3 +244,9 @@ const config = {
 
 // Initialize DynamoDB client
 const dynamodb = new DynamoDBClient(config);
+
+
+
+
+
+module.exports = { DynamoDBTableManager, DynamoDBManager };
