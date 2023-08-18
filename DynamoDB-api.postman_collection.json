@@ -24,11 +24,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/createTable",
+							"raw": "{{url}}/dynamodb/createTable",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
+								"dynamodb",
 								"createTable"
 							]
 						}
@@ -41,11 +42,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/readTable?tableName=testAPI_table",
+							"raw": "{{url}}/dynamodb/readTable?tableName=testAPI_table",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
+								"dynamodb",
 								"readTable"
 							],
 							"query": [
@@ -79,11 +81,12 @@
 							"raw": "{\r\n    \"tableName\":\"testAPI_table\",\r\n    \"partitionKey\":\"USERS\",\r\n    \"sortKey\":\"hjkabkfn345235624r425mf#GoldSell#2023-08-16T10:56:45.000000Z\",\r\n    \"data\":{\r\n        \"lockPrice\":{\"S\":\"5851.70\"},\r\n        \"blockId\":{\"S\":\"dgarhgrhrf\"},\r\n        \"metalType\":{\"S\":\"gold\"},\r\n        \"merchantTransactionId\":{\"S\":\"a1137d2a_2023-08-13_064798\"},\r\n        \"userBank[userBankId]\":{\"S\":\"a7zp2DXv\"},\r\n        \"userBank[accountName]\":{\"S\":\"Ananth N\"},\r\n        \"userBank[accountNumber]\":{\"S\":\"1253467362345\"},\r\n        \"userBank[ifscCode]\":{\"S\":\"RBIN9976\"},\r\n        \"amount\":{\"N\":100}\r\n    }\r\n}\r\n\r\n\r\n\r\n"
 						},
 						"url": {
-							"raw": "{{url}}/insertData",
+							"raw": "{{url}}/dynamodb/insertData",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
+								"dynamodb",
 								"insertData"
 							]
 						}
@@ -96,11 +99,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/getData?tableName=testAPI_table&partitionKey=USERS&sortKey=hjkabkfn345235624r425mf%23GoldSell%232023-08-16T10:56:45.000000Z",
+							"raw": "{{url}}/dynamodb/getData?tableName=testAPI_table&partitionKey=USERS&sortKey=hjkabkfn345235624r425mf%23GoldSell%232023-08-16T10:56:45.000000Z",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
+								"dynamodb",
 								"getData"
 							],
 							"query": [
@@ -114,7 +118,7 @@
 								},
 								{
 									"key": "sortKey",
-									"value": "hjkabkfn345235624r425mf#GoldSell#2023-08-16T10:56:45.000000Z"
+									"value": "hjkabkfn345235624r425mf%23GoldSell%232023-08-16T10:56:45.000000Z"
 								}
 							]
 						}
@@ -137,11 +141,12 @@
 							"raw": "{\r\n    \"tableName\":\"testAPI_table\",\r\n    \"partitionKey\":\"USERS\",\r\n    \"sortKey\":\"hjkabkfn345235624r425mf#GoldSell#2023-08-16T10:56:45.000000Z\",\r\n    \"attributesToUpdate\":{\r\n        \"metalType\":{\"S\":\"Silver\"}\r\n    }\r\n}\r\n"
 						},
 						"url": {
-							"raw": "{{url}}/updateItem",
+							"raw": "{{url}}/dynamodb/updateItem",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
+								"dynamodb",
 								"updateItem"
 							]
 						}
@@ -163,11 +168,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/deleteData",
+							"raw": "{{url}}/dynamodb/deleteData",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
+								"dynamodb",
 								"deleteData"
 							]
 						}
@@ -200,7 +206,7 @@
 	"variable": [
 		{
 			"key": "url",
-			"value": "http://localhost:3000",
+			"value": "http://localhost:5000",
 			"type": "string"
 		}
 	]

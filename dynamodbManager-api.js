@@ -1,10 +1,7 @@
 const express = require("express");
 const { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand,
     DeleteItemCommand, CreateTableCommand, DescribeTableCommand } = require("@aws-sdk/client-dynamodb");
-
-
-const app = express();
-app.use(express.json()); // Parse JSON request bodies
+const router = express.Router();
 
 // Configure AWS credentials and region or use "aws configure" in cli
 const config = {
@@ -18,7 +15,7 @@ const config = {
 // Initialize DynamoDB client
 const dynamodb = new DynamoDBClient(config);
 //
-app.post("/createTable", async (req, res) => {
+router.post("/createTable", async (req, res) => {
   const{tableName,partitionKey,sortKey}=req.body;
   const params = {
       TableName: tableName,
@@ -44,7 +41,7 @@ app.post("/createTable", async (req, res) => {
     }
   });
 
-app.get("/readTable", async (req, res) => {
+router.get("/readTable", async (req, res) => {
     const tableName = req.query.tableName; // Extract the tableName parameter
     console.log(tableName); // Check if tableName is being correctly received
     
@@ -63,7 +60,7 @@ app.get("/readTable", async (req, res) => {
 
 
 // DynamoDBManager functions as API routes
-app.post("/insertData", async (req, res) => {
+router.post("/insertData", async (req, res) => {
   const {tableName,partitionKey,sortKey,data} = req.body;
   const params = {
       TableName: tableName,
@@ -83,7 +80,7 @@ app.post("/insertData", async (req, res) => {
   });
   
 
-app.get("/getData", async (req, res) => {
+router.get("/getData", async (req, res) => {
   const{tableName,partitionKey,sortKey}=req.query;
   const params = {
     TableName: tableName,
@@ -105,7 +102,7 @@ app.get("/getData", async (req, res) => {
   }
 });
 
-app.put("/updateItem", async (req, res) => {
+router.put("/updateItem", async (req, res) => {
   const{tableName,partitionKey,sortKey,attributesToUpdate}=req.body;
   
   const updateExpression = "SET " + Object.keys(attributesToUpdate).map(attr => `#${attr} = :${attr}`).join(", ");
@@ -136,7 +133,7 @@ app.put("/updateItem", async (req, res) => {
   }
 });
 
-app.delete("/deleteData", async (req, res) => {
+router.delete("/deleteData", async (req, res) => {
   const{tableName,partitionKey,sortKey}=req.body;
   const params = {
     TableName: tableName,
@@ -154,9 +151,4 @@ app.delete("/deleteData", async (req, res) => {
   }
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+module.exports = router;
